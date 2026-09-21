@@ -4,9 +4,11 @@ Copy to Clipboard CLI utility (currently X11 only)
 # Installation
 ## Dependencies 
 For all: `yt-dlp, aria2c`
+
 For X11: `xclip`
 
 Wayland support: Planned
+
 Wget/cURL support (aria2c alternative): Planned
 
 First clone the repo
@@ -14,8 +16,8 @@ First clone the repo
 git clone https://github.com/cerialDX/copy.sh.git
 cd copy.sh
 ```
-It's recommended to install this to ~/.local as an X-server is only available as the user (launching an X-server as root is a big no no so don't do that)
-Since this isn't a binary file it makes most sense to put it in a separate folder like ~/.local/scripts or ~/.local/bin/scripts 
+It's recommended to install this to `~/.local` as an X-server is only available as the user (launching an X-server as root is a big no no so don't do that)
+Since this isn't a binary file it makes most sense to put it in a separate folder like `~/.local/scripts` or `~/.local/bin/scripts` 
 ```sh
 mkdir -p ~/.local/scripts
 ```
