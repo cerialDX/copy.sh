@@ -3,7 +3,7 @@ Copy to Clipboard CLI utility for Linux (currently X11 only)
 
 # Installation
 ## Dependencies 
-Base: `yt-dlp, aria2c`
+Base: `yt-dlp`, `aria2c`
 
 Optional: `wget`, `curl`
 
