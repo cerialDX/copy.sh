@@ -61,7 +61,7 @@ copy() {
 			echo -e "\t r: clear all temporary files (clears all tmpfiles matching /tmp/tmpcopy.*)"
 			;;
 		v)
-			echo -e "Copy to clipboard\nVersion 2.4\nWritten by cerialDX"
+			echo -e "Copy to clipboard\nVersion 2.6\nWritten by cerialDX"
 			;;
 		*)
 			echo "Invalid usage (use h for help)"
