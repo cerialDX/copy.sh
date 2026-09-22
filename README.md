@@ -16,7 +16,8 @@ First clone the repo
 git clone https://github.com/cerialDX/copy.sh.git
 cd copy.sh
 ```
-It's recommended to install this to `~/.local` as an X-server or a Wayland compositor instance is only available as the user (launching an X-server as root is a big no no so don't do that)
+It's recommended to install this to `~/.local` as an X-server or a Wayland compositor instance is only available as the user (launching an X-server as root is a big no no so don't do that).
+
 Since this isn't a binary file it makes most sense to put it in a separate folder like `~/.local/scripts` or `~/.local/bin/scripts` 
 ```sh
 mkdir -p ~/.local/scripts
@@ -26,8 +27,9 @@ Copy both scripts to the install location
 cp copy ~/.local/scripts/copy
 cp .downloaded.sh ~/.local/scripts/.downloaded.sh
 ```
-Note: `.downloaded.sh` and `copy` should both be in the same folder
-Finally, make these available available
+Note: `.downloaded.sh` and `copy` should both be in the same folder.
+
+Finally, make these globally available
 
 ## Bash
 Put this line in `~/.bashrc`
