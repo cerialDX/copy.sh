@@ -1,5 +1,5 @@
 # copy.sh
-Copy to Clipboard CLI utility (currently X11 only)
+Copy to Clipboard CLI utility for Linux (currently X11 only)
 
 # Installation
 ## Dependencies 
@@ -48,4 +48,4 @@ fish_add_path "/home/$USER/.local/scripts"
 ```
 
 # Usage
-Run `copy -h` to print help commands
+Run `copy h` to print help commands
