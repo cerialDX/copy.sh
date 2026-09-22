@@ -1,69 +1,69 @@
 #!/usr/bin/env bash
 
-# TODO: add wayland support (will need to reorganise case-switch block with functions) (v3)
-# TODO: add wget and curl support (v4)
+# TODO: add wget and curl support (v3)
+# TODO: add wayland support (will need to reorganise case-switch block with functions) (v4)
 
 # in case of script not in ~/.local/bin/scripts
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 copy() {
 	case $1 in
-		-c)
+		c)
 			cat "$2" | xclip -selection clipboard
 			;;
-		-f)
+		f)
 			printf '%s\r\n' "file://$(realpath "$2")" | xclip -i -selection clipboard -t text/uri-list
 			;;
-		-t)
+		t)
 			echo "$2" | xclip -selection clipboard
 			;;	
-		-x)
+		x)
 			xclip -selection clipboard
 			;;
-		-w)
+		w)
 			# some pathing bs because apparently aria2c doesnt accept 
 			RPATH=$(realpath --relative-to=. ~/.tmp)
 			SPATH=$(realpath $SCRIPT_DIR/.downloaded.sh)
 			aria2c "$2" -d "$RPATH" --on-download-complete=$SPATH || { echo "download failed"; exit 1; } 
 			;;
-		-y*)
+		y*)
 			case $1 in
-				-ya)
+				ya)
 					TMP=$(mktemp ~/.tmp/tmpcopy.XXXX.mp3)
 					yt-dlp -t mp3 "$2" --force-overwrites -o "$TMP" || { echo "download failed"; exit 1; } 
 					printf '%s\r\n' "file://$(realpath "$TMP")" | xclip -i -selection clipboard -t text/uri-list					
 					echo ""$2" copied to clipboard as audio"
 					;;
-				-yv)
+				yv)
 					echo ""$2" copied to clipboard as video"
 					TMP=$(mktemp ~/.tmp/tmpcopy.XXXX.mp4)
 					yt-dlp -t mp4 "$2" --force-overwrites -o "$TMP" || { echo "Download Failed"; exit 1; } 
 					printf '%s\r\n' "file://$(realpath "$TMP")" | xclip -i -selection clipboard -t text/uri-list					
 					;;
-				-y*)
+				y*)
 					echo "Invalid usage (use -ya to copy as audio and -yv to copy as video)"
 					;;
 			esac
 			;;
-		-r)
+		r)
 			rm ~/.tmp/* || echo "No TMPfiles"
 			;;
-		-h)
+		h)
 			echo "Usage: copy <option> <file/text/link/NOTHING>"
-			echo -e "\t -c: copy contents of <file>"
-			echo -e "\t -f: copy <file> itself"
-			echo -e "\t -t: copy text or output of command (copy -t \$(command))"
-			echo -e "\t -x: pipe output of a command into copy -x to copy it (command | copy -x)"
-			echo -e "\t -w: copy a file from a link by downloading it to a temporary file"
-			echo -e "\t -yv: copy a file from a youtube link as an video by downloading it to a temporary file"
-			echo -e "\t -ya: copy a file from a youtube link as an audio by downloading it to a temporary file"			
-			echo -e "\t -r: clear all temporary files (clears all tmpfiles matching /tmp/tmpcopy.*)"
+			echo -e "\t c: copy contents of <file>"
+			echo -e "\t f: copy <file> itself"
+			echo -e "\t t: copy text or output of command (copy -t \$(command))"
+			echo -e "\t x: pipe output of a command into copy -x to copy it (command | copy -x)"
+			echo -e "\t w: copy a file from a link by downloading it to a temporary file"
+			echo -e "\t yv: copy a file from a youtube link as an video by downloading it to a temporary file"
+			echo -e "\t ya: copy a file from a youtube link as an audio by downloading it to a temporary file"			
+			echo -e "\t r: clear all temporary files (clears all tmpfiles matching /tmp/tmpcopy.*)"
 			;;
-		-v)
+		v)
 			echo -e "Copy to clipboard\nVersion 2.4\nWritten by cerialDX"
 			;;
 		*)
-			echo "Invalid usage (use -h for help)"
+			echo "Invalid usage (use h for help)"
 			;;
 	esac			
 }
