@@ -50,6 +50,7 @@ copy() {
 			;;
 		h)
 			echo "Usage: copy <option> <file/text/link/NOTHING>"
+			echo "Options:"
 			echo -e "\t c: copy contents of <file>"
 			echo -e "\t f: copy <file> itself"
 			echo -e "\t t: copy text or output of command (copy -t \$(command))"
