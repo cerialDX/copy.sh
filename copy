@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# TODO: add wget and curl support (v3)
 # TODO: add wayland support (will need to reorganise case-switch block with functions) (v4)
 
 # in case of script not in ~/.local/bin/scripts
@@ -8,12 +7,6 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONFIG=~/.config/copy.sh/copy.config
 DOWNLOADPATH=~/.tmp/copy.sh
 SPATH=$(realpath $SCRIPT_DIR/.downloaded.sh)
-
-# config options
-# downloader: wget or curl or [aria2c]
-# server: [x11] or wayland
-# yt-dlp audio download flags: [none]
-# yt-dlp video download flags: [none]
 
 initconfig() {
 	# create config file and set base values
@@ -108,7 +101,7 @@ x11() {
 			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
 			;;
 		v)
-			echo -e "Copy to clipboard\nVersion 3.1\nWritten by cerialDX"
+			echo -e "Copy to clipboard\nVersion 3.3\nWritten by cerialDX"
 			;;
 		*)
 			echo "Invalid usage (use h for help)"
