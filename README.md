@@ -5,11 +5,11 @@ Copy to Clipboard CLI utility for Linux (currently X11 only)
 ## Dependencies 
 For all: `yt-dlp, aria2c`
 
+Optional: `wget`, `curl`
+
 For X11: `xclip`
 
 Wayland support: Planned
-
-Wget/cURL support (aria2c alternative): Planned
 
 First clone the repo
 ```sh
@@ -51,3 +51,9 @@ fish_add_path "/home/$USER/.local/scripts"
 
 # Usage
 Run `copy h` to print help commands
+
+# Configuration
+The following parameters can be configured in ~/.config/copy.sh:
+	Display Server backend (SERVER): [x11] or wayland (wayland support coming soon)
+	Downloader backend for `copy w` (DOWNLOADER): wget or curl or [aria2c]
+	yt-dlp download flags for `copy ya` and `copy yv` (YAFLAGS and YVFLAGS): string of flags for yt-dlp (see `yt-dlp -h`), default: `--embed-thumbnails` for both

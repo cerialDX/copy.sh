@@ -5,8 +5,38 @@
 
 # in case of script not in ~/.local/bin/scripts
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+CONFIG=~/.config/copy.sh/copy.config
+DOWNLOADPATH=~/.tmp/copy.sh
+SPATH=$(realpath $SCRIPT_DIR/.downloaded.sh)
 
-copy() {
+# config options
+# downloader: wget or curl or [aria2c]
+# server: [x11] or wayland
+# yt-dlp audio download flags: [none]
+# yt-dlp video download flags: [none]
+
+initconfig() {
+	# create config file and set base values
+	mkdir -p $DOWNLOADPATH
+	mkdir -p ~/.config/copy.sh
+	touch $CONFIG
+	echo "DOWNLOADER=aria2c" >> $CONFIG
+	echo "SERVER=x11" >> $CONFIG
+	echo "YAFLAGS="--embed-thumbnails"" >> $CONFIG
+	echo "YVFLAGS="--embed-thumbnails"" >> $CONFIG
+}
+
+readconfig() {
+	source $CONFIG
+	# thank you bash
+}
+
+debug() {
+	echo -e "$CONFIG \n$SCRIPT_DIR \n$1 $2 \n$DOWNLOADER \n$SERVER \n$YAFLAGS \n$YVFLAGS"
+	# print all variables for debugging
+}
+
+x11() {
 	case $1 in
 		c)
 			cat "$2" | xclip -selection clipboard
@@ -21,32 +51,44 @@ copy() {
 			xclip -selection clipboard
 			;;
 		w)
-			# some pathing bs because apparently aria2c doesnt accept 
-			RPATH=$(realpath --relative-to=. ~/.tmp)
-			SPATH=$(realpath $SCRIPT_DIR/.downloaded.sh)
-			aria2c "$2" -d "$RPATH" --on-download-complete=$SPATH || { echo "download failed"; exit 1; } 
+			case $DOWNLOADER in
+				wget)
+					FILENAME=$(wget -P $DOWNLOADPATH -q $2 && ls -rt $DOWNLOADPATH | head -n 1)
+					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list
+					;;
+				curl)
+					FILENAME=$(curl -O "$2" --output-dir $DOWNLOADPATH && ls -t . | head -n 1)
+					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list
+					;;
+				*)
+					# some pathing bs because apparently aria2c doesnt accept 
+					RPATH=$(realpath --relative-to=. $DOWNLOADPATH)
+					# aria2c cant print filename after download for some reason so a script has to be executed thats .downloaded.sh
+					aria2c "$2" -d "$RPATH" --on-download-complete=$SPATH || { echo "download failed"; exit 1; } 
+					;;
+			esac
 			;;
 		y*)
 			case $1 in
 				ya)
-					TMP=$(mktemp ~/.tmp/tmpcopy.XXXX.mp3)
-					yt-dlp -t mp3 "$2" --force-overwrites -o "$TMP" || { echo "download failed"; exit 1; } 
+					TMP=$(mktemp $DOWNLOADPATH/tmpcopy.XXXX.mp3)
+					yt-dlp -t mp3 "$YAFLAGS" "$2" --force-overwrites -o "$TMP" || { echo "download failed"; exit 1; } 
 					printf '%s\r\n' "file://$(realpath "$TMP")" | xclip -i -selection clipboard -t text/uri-list					
 					echo ""$2" copied to clipboard as audio"
 					;;
 				yv)
 					echo ""$2" copied to clipboard as video"
-					TMP=$(mktemp ~/.tmp/tmpcopy.XXXX.mp4)
-					yt-dlp -t mp4 "$2" --force-overwrites -o "$TMP" || { echo "Download Failed"; exit 1; } 
+					TMP=$(mktemp $DOWNLOADPATH/tmpcopy.XXXX.mp4)
+					yt-dlp -t mp4 "$YVFLAGS" "$2" --force-overwrites -o "$TMP" || { echo "Download Failed"; exit 1; } 
 					printf '%s\r\n' "file://$(realpath "$TMP")" | xclip -i -selection clipboard -t text/uri-list					
 					;;
 				y*)
-					echo "Invalid usage (use -ya to copy as audio and -yv to copy as video)"
+					echo "Invalid usage (use ya to copy as audio and yv to copy as video)"
 					;;
 			esac
 			;;
 		r)
-			rm ~/.tmp/* || echo "No TMPfiles"
+			rm $DOWNLOADPATH/* 2> /dev/null || echo "No TMPfiles"
 			;;
 		h)
 			echo "Usage: copy <option> <file/text/link/NOTHING>"
@@ -58,15 +100,39 @@ copy() {
 			echo -e "\t w: copy a file from a link by downloading it to a temporary file"
 			echo -e "\t yv: copy a file from a youtube link as an video by downloading it to a temporary file"
 			echo -e "\t ya: copy a file from a youtube link as an audio by downloading it to a temporary file"			
-			echo -e "\t r: clear all temporary files (clears all tmpfiles matching /tmp/tmpcopy.*)"
+			echo -e "\t r: clear all temporary files (clears all files in /.tmp/copy.sh)"
+			echo "Configuration: edit ~/.config/copy.sh/copy.config"
+			echo -e "\t DOWNLOADER: [aria2c] or wget or curl: Download backend to use for copy w"
+			echo -e "\t SERVER: [x11] or wayland: display server"
+			echo -e "\t YAFLAGS: string of flags, default: --embed-thumbnails: flags for yt-dlp for audio download (copy ya) (see yt-dlp -h)"
+			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnails: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
 			;;
 		v)
-			echo -e "Copy to clipboard\nVersion 2.6\nWritten by cerialDX"
+			echo -e "Copy to clipboard\nVersion 3.1\nWritten by cerialDX"
 			;;
 		*)
 			echo "Invalid usage (use h for help)"
 			;;
-	esac			
+	esac 
 }
 
-copy $@
+wayland() {
+	echo "Wayland support coming next version"
+}
+
+
+
+if [ ! -e $CONFIG ]; then
+	initconfig
+fi
+
+readconfig
+
+case $SERVER in 
+	x11)
+		x11 $@
+		;;
+	wayland)
+		wayland $@
+		;;
+esac
