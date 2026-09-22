@@ -22,8 +22,8 @@ initconfig() {
 	touch $CONFIG
 	echo "DOWNLOADER=aria2c" >> $CONFIG
 	echo "SERVER=x11" >> $CONFIG
-	echo "YAFLAGS="--embed-thumbnails"" >> $CONFIG
-	echo "YVFLAGS="--embed-thumbnails"" >> $CONFIG
+	echo "YAFLAGS="--embed-thumbnail"" >> $CONFIG
+	echo "YVFLAGS="--embed-thumbnail"" >> $CONFIG
 }
 
 readconfig() {
@@ -104,8 +104,8 @@ x11() {
 			echo "Configuration: edit ~/.config/copy.sh/copy.config"
 			echo -e "\t DOWNLOADER: [aria2c] or wget or curl: Download backend to use for copy w"
 			echo -e "\t SERVER: [x11] or wayland: display server"
-			echo -e "\t YAFLAGS: string of flags, default: --embed-thumbnails: flags for yt-dlp for audio download (copy ya) (see yt-dlp -h)"
-			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnails: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
+			echo -e "\t YAFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for audio download (copy ya) (see yt-dlp -h)"
+			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
 			;;
 		v)
 			echo -e "Copy to clipboard\nVersion 3.1\nWritten by cerialDX"

@@ -56,4 +56,4 @@ Run `copy h` to print help commands
 The following parameters can be configured in ~/.config/copy.sh:
 	Display Server backend (SERVER): [x11] or wayland (wayland support coming soon)
 	Downloader backend for `copy w` (DOWNLOADER): wget or curl or [aria2c]
-	yt-dlp download flags for `copy ya` and `copy yv` (YAFLAGS and YVFLAGS): string of flags for yt-dlp (see `yt-dlp -h`), default: `--embed-thumbnails` for both
+	yt-dlp download flags for `copy ya` and `copy yv` (YAFLAGS and YVFLAGS): string of flags for yt-dlp (see `yt-dlp -h`), default: `--embed-thumbnail` for both
