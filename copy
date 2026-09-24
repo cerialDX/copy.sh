@@ -98,7 +98,7 @@ x11() {
 			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
 			;;
 		v)
-			echo -e "Copy to clipboard\nVersion 3.3\nWritten by cerialDX"
+			echo -e "Copy to clipboard\nVersion 4.2\nWritten by cerialDX"
 			;;
 		*)
 			echo "Invalid usage (use h for help)"
@@ -183,7 +183,7 @@ wayland() {
 			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
 			;;
 		v)
-			echo -e "Copy to clipboard\nVersion 3.3\nWritten by cerialDX"
+			echo -e "Copy to clipboard\nVersion 4.2\nWritten by cerialDX"
 			;;
 		*)
 			echo "Invalid usage (use h for help)"
