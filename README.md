@@ -27,9 +27,7 @@ mkdir -p ~/.local/scripts
 Copy both scripts to the install location
 ```sh
 cp copy ~/.local/scripts/copy
-cp .downloaded.sh ~/.local/scripts/.downloaded.sh
 ```
-Note: `.downloaded.sh` and `copy` should both be in the same folder.
 
 Finally, make these globally available
 
