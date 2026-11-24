@@ -11,7 +11,7 @@ For X11: `xclip`
 
 For Wayland: `wl-clipboard`
 
-Wayland support: Partially working
+Wayland support: Supposedly working
 
 First clone the repo
 ```sh
@@ -62,6 +62,4 @@ The following parameters can be configured in ~/.config/copy.sh:
 	yt-dlp download flags for `copy ya` and `copy yv` (YAFLAGS and YVFLAGS): string of flags for yt-dlp (see `yt-dlp -h`), default: `--embed-thumbnail` for both
 
 # Wayland support
-Wayland support from my testing atleast is kind of hit or miss.
-All the text options work but the file options (f, w, ya and yv) dont work reliably (which in hindsight is the most major use case).
-I still recommend that you test the script on wayland on your own. 
+there IS wayland support but its not tested
