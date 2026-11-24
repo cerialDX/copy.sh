@@ -7,9 +7,9 @@ DOWNLOADPATH=~/.tmp/copy.sh
 
 initconfig() {
 	# create config file and set base values
-	mkdir -p $DOWNLOADPATH
+	mkdir -p "$DOWNLOADPATH"
 	mkdir -p ~/.config/copy.sh
-	touch $CONFIG
+	touch "$CONFIG"
 	echo "DOWNLOADER=wget" >> $CONFIG
 	echo "SERVER=x11" >> $CONFIG
 	echo "YAFLAGS="--embed-thumbnail"" >> $CONFIG
@@ -17,7 +17,7 @@ initconfig() {
 }
 
 readconfig() {
-	source $CONFIG
+	source "$CONFIG"
 	# thank you bash
 }
 
@@ -26,184 +26,180 @@ debug() {
 	# print all variables for debugging
 }
 
-x11() {
-	case $1 in
-		c)
-			cat "$2" | xclip -selection clipboard
-			;;
-		f)
-			printf '%s\r\n' "file://$(realpath "$2")" | xclip -i -selection clipboard -t text/uri-list
-			;;
-		t)
-			echo "$2" | xclip -selection clipboard
-			;;	
-		x)
+download_link() {
+	local url=$1 name=$2
+
+	if [ -n "$name" ]; then
+		case $DOWNLOADER in
+			wget)
+				wget -q -O "$DOWNLOADPATH/$name" "$url"
+				;;
+			curl)
+				curl -o "$DOWNLOADPATH/$name" "$url"
+				;;
+			*)
+				RPATH=$(realpath --relative-to=. "$DOWNLOADPATH")
+				aria2c --allow-overwrite=true -d "$RPATH" -o "$name" "$url" > /dev/null
+				;;
+		esac || return 1
+		FILENAME=$name
+	else
+		case $DOWNLOADER in
+			wget)
+				FILENAME=$(wget -P "$DOWNLOADPATH" -q "$url" && ls -t "$DOWNLOADPATH" | head -n 1)
+				;;
+			curl)
+				FILENAME=$(curl -O "$url" --output-dir "$DOWNLOADPATH" && ls -t "$DOWNLOADPATH" | head -n 1)
+				;;
+			*)
+				RPATH=$(realpath --relative-to=. "$DOWNLOADPATH")
+				FILENAME=$(aria2c "$url" -d "$RPATH" > /dev/null && ls -t "$DOWNLOADPATH" | head -n 1)
+				;;
+		esac
+	fi
+}
+
+urlencode() {
+	local LC_ALL=C s=$1 c out= i
+	for (( i=0; i<${#s}; i++ )); do
+		c=${s:i:1}
+		case $c in
+			[a-zA-Z0-9.~_/-]) out+=$c ;;
+			*) printf -v c '%%%02X' "'$c"; out+=$c ;;
+		esac
+	done
+	printf '%s' "$out"
+}
+
+copytext() {
+	case $SERVER in
+		x11)
 			xclip -selection clipboard
 			;;
-		w)
-			case $DOWNLOADER in
-				wget)
-					FILENAME=$(wget -P $DOWNLOADPATH -q $2 && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list
-					;;
-				curl)
-					FILENAME=$(curl -O "$2" --output-dir $DOWNLOADPATH && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list
-					;;
-				*)
-					# some pathing bs because apparently aria2c doesnt accept 
-					RPATH=$(realpath --relative-to=. $DOWNLOADPATH)
-					# aria2c cant print filename after download for some reason so a script has to be executed thats .downloaded.sh
-					FILENAME=$(aria2c "$2" -d "$RPATH" > /dev/null && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list					
-					;;
-			esac
-			;;
-		y*)
-			case $1 in
-				ya)
-					FILENAME=$(yt-dlp -t mp3 -o "$DOWNLOADPATH/%(title)s.mp3" "$YAFLAGS" "$2" --force-overwrites > /dev/null && ls -t $DOWNLOADPATH | head -n 1)
-					echo $FILENAME
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list
-					echo ""$2" copied to clipboard as audio"
-					;;
-				yv)
-					FILENAME=$(yt-dlp -t mp4 -o "$DOWNLOADPATH/%(title)s.mp4" "$YVFLAGS" "$2" --force-overwrites > /dev/null && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | xclip -i -selection clipboard -t text/uri-list
-					echo ""$2" copied to clipboard as video"
-					;;
-				y*)
-					echo "Invalid usage (use ya to copy as audio and yv to copy as video)"
-					;;
-			esac
-			;;
-		r)
-			rm $DOWNLOADPATH/* 2> /dev/null || echo "No TMPfiles"
-			;;
-		h)
-			echo "Usage: copy <option> <file/text/link/NOTHING>"
-			echo "Options:"
-			echo -e "\t c: copy contents of <file>"
-			echo -e "\t f: copy <file> itself"
-			echo -e "\t t: copy text or output of command (copy -t \$(command))"
-			echo -e "\t x: pipe output of a command into copy -x to copy it (command | copy -x)"
-			echo -e "\t w: copy a file from a link by downloading it to a temporary file"
-			echo -e "\t yv: copy a file from a youtube link as an video by downloading it to a temporary file"
-			echo -e "\t ya: copy a file from a youtube link as an audio by downloading it to a temporary file"			
-			echo -e "\t r: clear all temporary files (clears all files in /.tmp/copy.sh)"
-			echo "Configuration: edit ~/.config/copy.sh/copy.config"
-			echo -e "\t DOWNLOADER: [aria2c] or wget or curl: Download backend to use for copy w"
-			echo -e "\t SERVER: [x11] or wayland: display server"
-			echo -e "\t YAFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for audio download (copy ya) (see yt-dlp -h)"
-			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
-			;;
-		v)
-			echo -e "Copy to clipboard\nVersion 4.2\nWritten by cerialDX"
+		wayland)
+			if [ "$1" = "trim" ]; then
+				wl-copy -n
+			else
+				wl-copy
+			fi
 			;;
 		*)
-			echo "Invalid usage (use h for help)"
+			echo "Invalid SERVER in $CONFIG (use x11 or wayland)" >&2
+			return 1
 			;;
-	esac 
+	esac
 }
 
-wayland() {
+copyfile() {
+	local uri
+	uri="file://$(urlencode "$(realpath "$1")")"
+	case $SERVER in
+		x11)
+			printf '%s\r\n' "$uri" | xclip -i -selection clipboard -t text/uri-list
+			;;
+		wayland)
+			printf '%s\r\n' "$uri" | wl-copy -t text/uri-list
+			;;
+		*)
+			echo "Invalid SERVER in $CONFIG (use x11 or wayland)" >&2
+			return 1
+			;;
+	esac
+}
+
+showhelp() {
+	echo "Usage: copy <option> <file/text/link/NOTHING>"
+	echo "Options:"
+	echo -e "\t c: copy contents of <file>"
+	echo -e "\t f: copy <file> itself"
+	echo -e "\t t: copy text or output of command (copy -t \$(command))"
+	echo -e "\t x: pipe output of a command into copy -x to copy it (command | copy -x)"
+	echo -e "\t w: copy a file from a link by downloading it to a temporary file"
+	echo -e "\t    --filename <name>: save the download under <name> (copy w <link> --filename clipboard.gif)"
+	echo -e "\t yv: copy a file from a youtube link as an video by downloading it to a temporary file"
+	echo -e "\t ya: copy a file from a youtube link as an audio by downloading it to a temporary file"
+	echo -e "\t r: clear all temporary files (clears all files in /.tmp/copy.sh)"
+	if [ "$SERVER" = "wayland" ]; then
+		echo "NOTE: wayland has not been tested yet"
+	fi
+	echo "Configuration: edit ~/.config/copy.sh/copy.config"
+	echo -e "\t DOWNLOADER: [aria2c] or wget or curl: Download backend to use for copy w"
+	echo -e "\t SERVER: [x11] or wayland: display server"
+	echo -e "\t YAFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for audio download (copy ya) (see yt-dlp -h)"
+	echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
+}
+
+
+main() {
 	case $1 in
 		c)
-			cat "$2" | wl-copy
+			cat "$2" | copytext
 			;;
 		f)
-			printf '%s\r\n' "file://$(realpath "$2")" | wl-copy -t mime/type
+			copyfile "$2"
 			;;
 		t)
-			echo "$2" | wl-copy -n
-			;;	
+			echo "$2" | copytext trim
+			;;
 		x)
-			wl-copy -n
+			copytext trim
 			;;
 		w)
-			case $DOWNLOADER in
-				wget)
-					FILENAME=$(wget -P $DOWNLOADPATH -q $2 && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | wl-copy -t mime/type
-					;;
-				curl)
-					FILENAME=$(curl -O "$2" --output-dir $DOWNLOADPATH && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | wl-copy -t mime/type
-					;;
-				*)
-					# some pathing bs because apparently aria2c doesnt accept 
-					RPATH=$(realpath --relative-to=. $DOWNLOADPATH)
-					# aria2c cant print filename after download for some reason so a script has to be executed thats .downloaded.sh					
-					FILENAME=$(aria2c "$2" -d "$RPATH" > /dev/null  && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | wl-copy -t mime/type
-					;;
-			esac
+			[ -z "$2" ] && { echo "Usage: copy w <link> [--filename <name>]" >&2; return 1; }
+			local url=$2 name=""
+			shift 2
+			while [ $# -gt 0 ]; do
+				case $1 in
+					--filename)
+						if [ -z "$2" ]; then
+							echo "--filename needs a value" >&2
+							return 1
+						fi
+						name=$(basename -- "$2")   # strip any path so it stays inside DOWNLOADPATH
+						shift 2
+						;;
+					*)
+						echo "Unknown option for w: $1" >&2
+						return 1
+						;;
+				esac
+			done
+			download_link "$url" "$name" || { echo "Download failed" >&2; return 1; }
+			copyfile "$DOWNLOADPATH/$FILENAME"
+			;;
+		ya)
+			FILENAME=$(yt-dlp -t mp3 -o "$DOWNLOADPATH/%(title)s.mp3" $YAFLAGS "$2" --force-overwrites > /dev/null && ls -t "$DOWNLOADPATH" | head -n 1)
+			copyfile "$DOWNLOADPATH/$FILENAME"
+			echo "$2 copied to clipboard as audio"
+			;;
+		yv)
+			FILENAME=$(yt-dlp -t mp4 -o "$DOWNLOADPATH/%(title)s.mp4" $YVFLAGS "$2" --force-overwrites > /dev/null && ls -t "$DOWNLOADPATH" | head -n 1)
+			copyfile "$DOWNLOADPATH/$FILENAME"
+			echo "$2 copied to clipboard as video"
 			;;
 		y*)
-			case $1 in
-				ya)
-					FILENAME=$(yt-dlp -t mp3 -o "$DOWNLOADPATH/%(title)s.mp3" "$YAFLAGS" "$2" --force-overwrites > /dev/null && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | wl-copy -t mime/type
-					echo ""$2" copied to clipboard as audio"
-					;;
-				yv)
-					echo ""$2" copied to clipboard as video"
-					FILENAME=$(yt-dlp -t mp4 -o "$DOWNLOADPATH/%(title)s.mp4" "$YVFLAGS" "$2" --force-overwrites > /dev/null && ls -t $DOWNLOADPATH | head -n 1)
-					printf '%s\r\n' "file://$(realpath "$DOWNLOADPATH/$FILENAME")" | wl-copy -t mime/type
-					;;
-				y*)
-					echo "Invalid usage (use ya to copy as audio and yv to copy as video)"
-					;;
-			esac
+			echo "Invalid usage (use ya to copy as audio and yv to copy as video)"
 			;;
 		r)
-			# same as in x11
-			rm $DOWNLOADPATH/* 2> /dev/null || echo "No TMPfiles"
+			rm "$DOWNLOADPATH"/* 2> /dev/null || echo "No TMPfiles"
 			;;
 		h)
-			# same as in x11
-			echo "Usage: copy <option> <file/text/link/NOTHING>"
-			echo "Options:"
-			echo -e "\t c: copy contents of <file>"
-			echo -e "\t f: copy <file> itself"
-			echo -e "\t t: copy text or output of command (copy -t \$(command))"
-			echo -e "\t x: pipe output of a command into copy -x to copy it (command | copy -x)"
-			echo -e "\t w: copy a file from a link by downloading it to a temporary file"
-			echo -e "\t yv: copy a file from a youtube link as an video by downloading it to a temporary file"
-			echo -e "\t ya: copy a file from a youtube link as an audio by downloading it to a temporary file"			
-			echo -e "\t r: clear all temporary files (clears all files in /.tmp/copy.sh)"
-			echo "NOTE: File based copying currently does not work reliably on wayland"
-			echo "i.e. options f, w, ya and yv atleast from my testing)"
-			echo "Ive made some general fixes but I havent done very extensive testing"
-			echo "Your mileage may vary"
-			echo "Configuration: edit ~/.config/copy.sh/copy.config"
-			echo -e "\t DOWNLOADER: [aria2c] or wget or curl: Download backend to use for copy w"
-			echo -e "\t SERVER: [x11] or wayland: display server"
-			echo -e "\t YAFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for audio download (copy ya) (see yt-dlp -h)"
-			echo -e "\t YVFLAGS: string of flags, default: --embed-thumbnail: flags for yt-dlp for video download (copy yv) (see yt-dlp -h)"
+			showhelp
 			;;
 		v)
-			echo -e "Copy to clipboard\nVersion 4.2\nWritten by cerialDX"
+			echo -e "Copy to clipboard\nVersion 5.1\nWritten by cerialDX"
 			;;
 		*)
 			echo "Invalid usage (use h for help)"
 			;;
-	esac 
+	esac
 }
 
 
-
-if [ ! -e $CONFIG ]; then
+if [ ! -e "$CONFIG" ]; then
 	initconfig
 fi
 
 readconfig
 
-case $SERVER in 
-	x11)
-		x11 $@
-		;;
-	wayland)
-		wayland $@
-		;;
-esac
+main "$@"
